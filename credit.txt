@@ -1,3 +1,2 @@
 Akavall
 pypi
-ozgurozbek

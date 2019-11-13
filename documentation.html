@@ -1,34 +1,73 @@
-<div style="font-family: Verdana, Geneva, Tahoma, sans-serif">
-    <h1>Intuition of how the algorithm works:</h1>
-    <p>Ants are traveling from a starting location to the final, visiting all cities. We can imagine they return using the same paths, and deposit pheromone on the way back. They deposit more pheromone on shorter distances, then long ones, and only on the path they traveled. An individual ant makes decisions on what city to go to based on level of pheromone on the path and the distance to the nearest city.</p>
-    <h2>In more detail:</h2>
-    <ol style="list-style-type: decimal">
-    <li>We select N number of ants.</li>
-    <li>We initialize matrix of pheromone deposits, it is the same shape as the distance matrix. And coordinates respond to the same cities. If <code style="background-color: #ddd; padding: 3px">distances[2,5] = 35</code> the distance from 2 to 5 is 35, and if <code style="background-color: #ddd; padding: 3px">pheromone[2,5] = 0.8</code> the level of pheromone deposited on path between 2 and 5 is 0.8. The pheromone matrix is initialize with small variables all of the same value.</li>
-    <li>Explore some paths:</li>
-    </ol>
-    <h2>Ant makes a decision on what city to go to using this:</h2>
-    <pre><code style="background-color: #ddd; padding: 3px">city_to_city_score = pheromone ** alpha * (1.0 / distance) ** beta</code></pre>
-    <p>alpha and beta act as weight on pheromone and distance respectively.</p>
-    <p>We calculate <code style="background-color: #ddd; padding: 3px">city_to_city_score</code> for all the available cities (we are ignoring cities we already visited, because we can't go back to them).</p>
-    <h2>The probability of going to the next city is:</h2>
-    <pre><code style="background-color: #ddd; padding: 3px">prob_of_going_to_city(i) = city_to_city_score(i) / sum_of_all_available_city_to_city_scores</code></pre>
-    <h3>For example, if an ant is at city 2, and available cities are 4,7,8. We computed the scores for those cities as:</h3>
-    <pre><code style="background-color: #ddd; padding: 3px">{4: 0.2, 7: 0.4, 8: 0.8}</code></pre>
-    <p>The probability of going to 4 is <code style="background-color: #ddd; padding: 3px">0.2 / (0.2 + 0.4 + 0.8) = 0.142857</code> and so on.</p>
-    <p>An ant keeps going from city to city according to the above choosing rule until he visits all cities.</p>
-    <p>If we chose 20 ants to start with, we will have 20 paths at the end of this group of ants traveling generation.</p>
-    <p>Since in the initial step the pheromone levels are the same, the choices are made on distances + some noise. Randomized Greedy if you like. But we want to keep track of the successful routes, so ants deposit pheromone.</p>
-    <ol start="4" style="list-style-type: decimal">
-    <li>On the way back all ants or selected number of best ants deposit pheromone on the paths they traveled.</li>
-    </ol>
-    <h2>They deposit:</h2>
-    <pre><code style="background-color: #ddd; padding: 3px"> 1 / (distance between two cities)</code></pre>
-    <p>For example: an ant traveled a path: [ (0 -&gt; 3) (distance: 8), (3 -&gt; 5) (distance: 2)]</p>
-    <p>0.125 units of pheromone would be deposited on <code style="background-color: #ddd; padding: 3px">pheromone[0,3] += 0.125</code> and <code style="background-color: #ddd; padding: 3px">pheromone[3,5] += 0.5</code></p>
-    <p>This is done to encourage ants to give more priority to shorter routes between cities.</p>
-    <ol start="5" style="list-style-type: decimal">
-    <li><p>The final piece, is that we have to let pheromone decay, so old pheromone does not confuse next generations of ants. We just multiply the pheromone matrix by decay rate. Right after we deposit. Therefore pheromone that has been sitting for a while has been subject to many many decays and should be small.</p></li>
-    <li><p>Keep doing steps 3) 4) and 5) for n iterations.</p></li>
-    </ol>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Karınca Kolonisi</title>
+</head>
+<body>
+    <div style="font-family: Verdana, Geneva, Tahoma, sans-serif">
+        <h1>Algoritmanın nasıl çalıştığı hakkında kısa bir özet:</h1>
+        <p>Karıncalar bir başlangıç noktasından bütün şehirlere uğrayarak bir sonuç noktasına ulaşıyorlar. Aynı yolu
+            kullanarak geri döndüklerini ve geri dönerken feromon bıraktıklarını kabul ediyoruz. Sadece yolculuk ettikleri
+            kısa mesafelerde, daha uzun olanlara kıyasla daha fazla feromon biriktiriyorlar. Bir sonraki karınca da yoldaki
+            feromon seviyesine ve bir sonraki şehirle olan mesafesine göre hareket ediyor.</p>
+        <h2>Detaylıca:</h2>
+        <ol style="list-style-type: decimal">
+            <li><b>N</b> adet karınca seçiyoruz.</li>
+            <li>Feromon yataklarının matrisini başlatıyoruz, uzaklık matrisi ile aynı şekilde. Koordinatlar aynı şehirlere
+                denk geliyor. Eğer <code style="background-color: #ddd; padding: 3px">distances[2,5] = 35</code>
+                (2'den 5'e olan mesafe 35 ise), ve eğer <code
+                    style="background-color: #ddd; padding: 3px">pheromone[2,5] = 0.8</code> (2 ile 5 arasındaki dağıtılmış
+                feromon seviyesi 0.8 ise) matrise yerleştirme de aynı değerlerin doğru yerlere yerleştirilmesiyle sağlanır.
+            </li>
+            <li>Yolları araştırmak:</li>
+        </ol>
+        <h2>Bir karınca hangi şehre gideceğine bu şekilde karar veriyor:</h2>
+        <pre><code style="background-color: #ddd; padding: 3px">city_to_city_score = pheromone ** alpha * (1.0 / distance) ** beta</code></pre>
+        <p><b>alpha</b> ve <b>beta</b> sırasıyla feromonun ve mesafenin ağırlıklarıdır.</p>
+        <p>Ulaşılabilecek bütün şehirler için değerleri <code
+                style="background-color: #ddd; padding: 3px">city_to_city_score</code> olarak hesaplıyoruz. Önceden
+            gittiğimiz şehirler yok sayılıyor çünkü onlara geri gitmeyeceğiz.</p>
+        <h2>Sonraki şehre gitmenin olasılığı için:</h2>
+        <pre><code style="background-color: #ddd; padding: 3px">prob_of_going_to_city(i) = city_to_city_score(i) / sum_of_all_available_city_to_city_scores</code></pre>
+        <p>Örneğin, eğer bir karınca 2. şehirdeyse ve ulaşılabilecek şehirler 4,7,8 ise, şehirlerin puanlarını bu şekilde
+            hesaplıyoruz.
+        </p>
+        <h3>Örnekteki her biri için:</h3>
+        <pre><code style="background-color: #ddd; padding: 3px">{4: 0.2, 7: 0.4, 8: 0.8}</code></pre>
+        <p>4'ün olasılığı; <code style="background-color: #ddd; padding: 3px">0.2 / (0.2 + 0.4 + 0.8) = 0.142857</code> olup
+            diğerleri de aynı şekilde hesaplanacaktır.</p>
+        <p>Bir karınca, bütün şehirleri ziyaret edinceye kadar yukarıdaki kurallara göre şehirden şehre gitmeye devam eder.
+        </p>
+        <p>Başlamak için 20 karınca seçersek, bu karınca gezici kuşağı grubunun sonunda 20 yolumuz olacaktır.
+        </p>
+        <p>Feromon seviyelerindeki başlangıç değeri aynı olduğundan ötürü, seçimler <b>distances + noise</b> olarak
+            hesaplanır.
+        </p>
+        <ol start="4" style="list-style-type: decimal">
+            <li>Geri dönerken tüm karıncalar ya da seçilmiş en iyi karıncalar seyahat ettikleri yollarda feromon biriktirir.
+            </li>
+        </ol>
+        <h2>Bıraktıkları:</h2>
+        <pre><code style="background-color: #ddd; padding: 3px"> 1 / (2 şehir arası mesafe)</code></pre>
+        <p>Örneğin: Bir karıncanın bir yoldan gitme durumu <code
+                style="background-color: #ddd; padding: 3px">[ (0 -&gt; 3) (distance: 8), (3 -&gt; 5) (distance: 2)]</code>'dur
+        </p>
+        <p>0.125 birim feromon <code style="background-color: #ddd; padding: 3px">pheromone[0,3] += 0.125</code> ve <code
+                style="background-color: #ddd; padding: 3px">pheromone[3,5] += 0.5</code> yollarında bırakılır.</p>
+        <p>Bu, karıncaları şehirler arasındaki kısa rotalara daha fazla öncelik vermeye teşvik etmek için yapılır.</p>
+        <ol start="5" style="list-style-type: decimal">
+            <li>
+                <p>Son kısım ise feromonun çürümesine izin vermemiz gerektiği. Bunu yapmamızın sebebi eski feromonun gelecek nesil
+                    karıncalarını şaşırtmaması. Feromon üretildikten hemen sonra feromon matrisini çürüme oranıyla çarpıyoruz. Bu şekilde
+                    bir süredir oturan feromon birçok bozunmaya maruz kalmış ve oldukça küçülmüştür.</p>
+            </li>
+            <li>
+                <p>Adımlar 3, 4 ve 5'i <b>N</b> iterasyon tekrarlarız.</p>
+            </li>
+        </ol>
+    </div>
+</body>
+</html>

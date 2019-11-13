@@ -70,7 +70,7 @@ class AntColony(object):
             path.append((prev, move))
             prev = move
             visited.add(move)
-        path.append((prev, start)) # going back to where we started    
+        path.append((prev, start)) # Başa dön    
         return path
 
     def pick_move(self, pheromone, dist, visited):
